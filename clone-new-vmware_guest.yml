@@ -1,0 +1,48 @@
+---
+- hosts: Lab:&Router
+  gather_facts: false
+  connection: local
+  user: remote
+  strategy: debug
+
+  vars_prompt:
+    - name: "vcenter_user"
+      prompt: "Enter vcenter username"
+      private: no
+      default: "Administrator@vsphere.pilsbury.org.local"
+    - name: "vcenter_pass"
+      prompt: "Enter vcenter password"
+      private: yes
+  tasks:
+    - name: "Deploy the router"
+      vmware_guest:
+        datacenter: "{{ datacenter }}"
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        name: "{{ inventory_hostname }}"
+        validate_certs: no
+        state: present
+        template: "vSRX Template"
+        folder: /Lab
+    - name: "Re-configure nics"
+      vmware_guest:
+        datacenter: "{{ datacenter }}"
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: no
+        name: "{{ inventory_hostname }}"      
+        state: present
+        folder: /Lab
+        networks: "{{lab_devices[inventory_hostname]['interfaces']}}"
+    - name: "Power on"
+      vmware_guest:
+        datacenter: "{{ datacenter }}"
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: no
+        name: "{{ inventory_hostname }}"      
+        state: poweredon
+        folder: /Lab
